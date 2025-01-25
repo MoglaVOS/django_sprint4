@@ -18,6 +18,10 @@ from django.urls import path, include, reverse_lazy
 from django.views.generic.edit import CreateView
 from django.contrib.auth.forms import UserCreationForm
 
+handler403 = 'pages.views.permission_denied'
+handler404 = 'pages.views.page_not_found'
+handler500 = 'pages.views.server_error'
+
 urlpatterns = [
     path('', include('blog.urls')),
     path('pages/', include('pages.urls')),
@@ -32,7 +36,3 @@ urlpatterns = [
          name='registration'
          ),
 ]
-
-handler403 = 'pages.views.permission_denied'
-handler404 = 'pages.views.page_not_found'
-handler500 = 'pages.views.server_error'
