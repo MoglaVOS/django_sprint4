@@ -46,7 +46,7 @@ class PostCategoryListView(PostMixin, ListView):
             )
         return self._category
 
-    def get_queryset(self):
+    def get_queryset(self, **kwargs):
         category = self.get_category()
         return self.model.objects.filter(
             category__exact=category,
@@ -69,18 +69,15 @@ class PostDetailView(PostMixin, DetailView):
             self.model.objects.filter(pk=self.kwargs['post_id'])
         )
 
-        # Allow access: user is the author.
         if post.author == self.request.user:
             return post
 
-        # Deny access: user is not the author, post isn't published.
         is_denied = (not post.is_published
                      or post.pub_date > timezone.now()
                      or not post.category.is_published)
         if is_denied:
             raise Http404
 
-        # Allow access: user is not the author, post is published.
         return post
 
     def get_context_data(self, **kwargs):
