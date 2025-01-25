@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.db.models import Count
 from django.urls import reverse
-
+from django.http import Http404
 from django.views.generic import (
     ListView, DetailView, CreateView,
     UpdateView, DeleteView
@@ -29,7 +29,7 @@ class PostIndexListView(PostMixin, ListView):
             pub_date__lte=timezone.now(),
             is_published__exact=True,
             category__is_published__exact=True
-        ).order_by('-pub_date').annotate(comment_count=Count('comments'))
+        ).order_by('-pub_date').annotate(comment_count=Count('comment'))
 
 
 class PostCategoryListView(PostMixin, ListView):
@@ -52,7 +52,7 @@ class PostCategoryListView(PostMixin, ListView):
             category__exact=category,
             is_published__exact=True,
             pub_date__lte=timezone.now()
-        ).order_by('-pub_date').annotate(comment_count=Count('comments'))
+        ).order_by('-pub_date').annotate(comment_count=Count('comment'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -64,25 +64,30 @@ class PostDetailView(PostMixin, DetailView):
     template_name = 'blog/detail.html'
 
     def get_object(self, **kwargs):
+        """Вернуть сообщение или http404 от post id."""
         post = get_object_or_404(
             self.model.objects.filter(pk=self.kwargs['post_id'])
         )
+
+        # Allow access: user is the author.
         if post.author == self.request.user:
             return post
-        else:
-            return get_object_or_404(
-                self.model.objects.filter(
-                    pub_date__lte=timezone.now(),
-                    is_published__exact=True,
-                    category__is_published__exact=True
-                ),
-                pk=self.kwargs['post_id']
-            )
+
+        # Deny access: user is not the author, post isn't published.
+        is_denied = (not post.is_published
+                     or post.pub_date > timezone.now()
+                     or not post.category.is_published)
+        if is_denied:
+            raise Http404
+
+        # Allow access: user is not the author, post is published.
+        return post
 
     def get_context_data(self, **kwargs):
+        """Add form and comments to the context."""
         context = super().get_context_data(**kwargs)
         context['form'] = CommentForm()
-        context['comments'] = self.object.comments.select_related('author')
+        context['comments'] = self.object.comment.select_related('author')
         return context
 
 

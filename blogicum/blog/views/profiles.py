@@ -31,7 +31,7 @@ class ProfileListView(ListView):
             )
             return (self.model.objects.select_related('author')
                     .filter(**filters).order_by('-pub_date')
-                    .annotate(comment_count=Count('comments')))
+                    .annotate(comment_count=Count('comment')))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -44,7 +44,7 @@ class ProfileListView(ListView):
 class ProfileUpdateView(UpdateView):
     """Показать форму редактирования для данного пользователя."""
 
-    template_name = 'blog/profile_edit.html'
+    template_name = 'blog/user.html'
     form_class = ProfileEditForm
 
     def get_object(self, queryset=None):

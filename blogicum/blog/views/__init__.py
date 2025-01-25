@@ -9,7 +9,6 @@ from .comments import (
     CommentCreateView, CommentUpdateView, CommentDeleteView
 )
 
-
 __all__ = [
     PostIndexListView, PostCategoryListView, PostDetailView,
     PostCreateView, PostUpdateView, PostDeleteView,
