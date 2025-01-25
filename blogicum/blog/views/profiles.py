@@ -43,7 +43,6 @@ class ProfileListView(ListView):
         return context
 
 
-
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     """Показать форму редактирования для данного пользователя."""
 
